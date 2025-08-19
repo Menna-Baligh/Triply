@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Model;
 
 class Travel extends Model
 {
+    use Sluggable ;
     protected $table = "travels";
     protected $fillable = [
         'is_public',
@@ -14,4 +16,12 @@ class Travel extends Model
         'description',
         'number_of_days'
     ];
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'name'
+            ]
+        ];
+    }
 }
