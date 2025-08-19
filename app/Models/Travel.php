@@ -17,6 +17,10 @@ class Travel extends Model
         'description',
         'number_of_days'
     ];
+    public function tours()
+    {
+        return $this->hasMany(Tour::class);
+    }
     public function getNumberOfNightsAttribute(): ?int
     {
         return isset($this->number_of_days)
