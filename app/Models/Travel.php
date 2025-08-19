@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Model;
+use Cviebrock\EloquentSluggable\Sluggable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Travel extends Model
 {
@@ -16,6 +17,12 @@ class Travel extends Model
         'description',
         'number_of_days'
     ];
+    public function getNumberOfNightsAttribute(): ?int
+    {
+        return isset($this->number_of_days)
+            ? $this->number_of_days - 1
+            : null;
+    }
     public function sluggable(): array
     {
         return [
