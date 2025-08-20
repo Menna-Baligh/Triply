@@ -36,4 +36,28 @@ class TourListTest extends TestCase
             'id' => $tour->id,
         ]);
     }
+    public function test_tour_price_is_shown_correctly(){
+        //* Create a new Travel record using the factory
+        $travel = Travel::factory()->create();
+
+        //* Create a Tour linked to the above Travel, with a specific price value
+        Tour::factory()->create([
+                'travel_id' => $travel->id ,
+                'price' => 123.45
+        ]);
+
+        //* Send a GET request to fetch tours of the created travel using its slug
+        $response = $this->get('/api/v1/travels/' . $travel->slug . '/tours');
+
+        //* Assert that the response status code is 200 (OK)
+        $response->assertStatus(200);
+
+        //* Assert that the response JSON contains exactly 1 tour record in 'data'
+        $response->assertJsonCount(1, 'data');
+
+        //* Assert that the returned JSON fragment contains the correct price value
+        $response->assertJsonFragment([
+            'price' => '123.45',
+        ]);
+    }
 }
