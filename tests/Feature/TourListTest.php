@@ -60,4 +60,23 @@ class TourListTest extends TestCase
             'price' => '123.45',
         ]);
     }
+    public function test_tours_list_returns_pagination(){
+        //* Create a travel record to associate tours with
+        $travel = Travel::factory()->create();
+
+        //* Create 16 tours related to the created travel (so pagination can be tested)
+        Tour::factory(16)->create(['travel_id' => $travel->id]);
+
+        //* Send GET request to fetch tours list for the travel
+        $response = $this->get('/api/v1/travels/' . $travel->slug . '/tours');
+
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+
+        //* Assert that the first page contains 15 tours (default pagination limit)
+        $response->assertJsonCount(15, 'data');
+
+        //* Assert that the "last_page" value in pagination meta is 2 (16 tours / 15 per page = 2 pages)
+        $response->assertJsonPath('meta.last_page', 2);
+    }
 }
