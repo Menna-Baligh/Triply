@@ -1,14 +1,14 @@
 <?php
 
 namespace App\Models;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Travel extends Model
 {
-    use Sluggable ;
+    use Sluggable , HasFactory ;
     protected $table = "travels";
     protected $fillable = [
         'is_public',
