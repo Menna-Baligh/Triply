@@ -149,4 +149,87 @@ class TourListTest extends TestCase
         //* Assert that the third tour returned is the one with the higher price
         $response->assertJsonPath('data.2.id', $expensiveTour->id);
     }
+    public function test_tours_list_filters_by_price_correctly(){
+        //* Create a travel record to associate tours with
+        $travel = Travel::factory()->create();
+
+        //* create expensive tour
+        $expensiveTour = Tour::factory()->create([
+            'travel_id' => $travel->id,
+            'price' => 200.00,
+        ]);
+
+        //* create cheap tour
+        $cheapTour = Tour::factory()->create([
+            'travel_id' => $travel->id,
+            'price' => 100.00,
+        ]);
+
+        //* Endpoint for fetching tours by travel slug
+        $endpoint = '/api/v1/travels/' . $travel->slug . '/tours';
+
+        //* Send GET request to fetch tours with price filter set to 100
+        $response = $this->get($endpoint . '?priceFrom=100');
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 1 tour in the "data" array
+        $response->assertJsonCount(2, 'data');
+        //* Assert that the returned JSON contains a tour with the correct ID
+        $response->assertJsonFragment(['id' => $cheapTour->id]);
+        $response->assertJsonFragment(['id' => $expensiveTour->id]);
+
+        //* Send GET request to fetch tours with price filter set to 150
+        $response = $this->get($endpoint . '?priceFrom=150');
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 1 tour in the "data" array
+        $response->assertJsonCount(1, 'data');
+        //* Assert that the returned JSON contains a tour with the correct ID
+        $response->assertJsonFragment(['id' => $expensiveTour->id]);
+        $response->assertJsonMissing(['id' => $cheapTour->id]);
+
+        //* Send GET request to fetch tours with price filter set to 250
+        $response = $this->get($endpoint . '?priceFrom=250');
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 0 tour in the "data" array
+        $response->assertJsonCount(0, 'data');
+
+        //* Send GET request to fetch tours with priceTO filter set to 200
+        $response = $this->get($endpoint . '?priceTo=200');
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 2 tours in the "data" array
+        $response->assertJsonCount(2, 'data');
+        //* Assert that the returned JSON contains a tour with the correct ID
+        $response->assertJsonFragment(['id' => $cheapTour->id]);
+        $response->assertJsonFragment(['id' => $expensiveTour->id]);
+
+        //* Send GET request to fetch tours with priceTO filter set to 150
+        $response = $this->get($endpoint . '?priceTo=150');
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 1 tour in the "data" array
+        $response->assertJsonCount(1, 'data');
+        //* Assert that the returned JSON contains a tour with the correct ID
+        $response->assertJsonFragment(['id' => $cheapTour->id]);
+        $response->assertJsonMissing(['id' => $expensiveTour->id]);
+
+        //* Send GET request to fetch tours with priceTO filter set to 50
+        $response = $this->get($endpoint . '?priceTo=50');
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 0 tour in the "data" array
+        $response->assertJsonCount(0, 'data');
+
+        //* Send GET request to fetch tours with both priceFrom 150 and priceTo 250 filters
+        $response = $this->get($endpoint . '?priceFrom=150&priceTo=250');
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 1 tour in the "data" array
+        $response->assertJsonCount(1, 'data');
+        //* Assert that the returned JSON contains a tour with the correct ID
+        $response->assertJsonFragment(['id' => $expensiveTour->id]);
+        $response->assertJsonMissing(['id' => $cheapTour->id]);
+    }
 }
