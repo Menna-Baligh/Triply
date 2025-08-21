@@ -232,4 +232,90 @@ class TourListTest extends TestCase
         $response->assertJsonFragment(['id' => $expensiveTour->id]);
         $response->assertJsonMissing(['id' => $cheapTour->id]);
     }
+    public function test_tours_list_filters_by_starting_date_correctly(){
+        //* create a travel record to associate tours with
+        $travel = Travel::factory()->create();
+
+        //* create a tour that starts later than the current date
+        $laterTour = Tour::factory()->create([
+            'travel_id' => $travel->id,
+            'starting_date' => now()->addDays(2),
+            'ending_date' => now()->addDays(3),
+        ]);
+
+        //* create a tour that starts earlier
+        $earlierTour = Tour::factory()->create([
+            'travel_id' => $travel->id,
+            'starting_date' => now(),
+            'ending_date' => now()->addDay(),
+        ]);
+
+        //* Endpoint for fetching tours by travel slug
+        $endpoint = '/api/v1/travels/' . $travel->slug . '/tours';
+
+        //* Send Get Request  filter by dateFrom now
+        $response = $this->get($endpoint . '?dateFrom=' . now());
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 2 tours in the "data" array
+        $response->assertJsonCount(2, 'data');
+        //* Assert that the returned JSON contains a tour with the correct ID
+        $response->assertJsonFragment(['id' => $earlierTour->id]);
+        $response->assertJsonFragment(['id' => $laterTour->id]);
+
+        //* Send Get Request  filter by dateFrom add day
+        $response = $this->get($endpoint . '?dateFrom=' . now()->addDay());
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 1 tour in the "data" array
+        $response->assertJsonCount(1, 'data');
+        //* Assert that the returned JSON contains a tour with the correct ID
+        $response->assertJsonFragment(['id' => $laterTour->id]);
+        $response->assertJsonMissing(['id' => $earlierTour->id]);
+
+        //* Send Get Request  filter by dateFrom add 5 days
+        $response = $this->get($endpoint . '?dateFrom=' . now()->addDays(5));
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 0 tour in the "data" array
+        $response->assertJsonCount(0, 'data');
+
+        //* Send Get Request  filter by dateTo day 5 days
+        $response = $this->get($endpoint . '?dateTo=' . now()->addDays(5));
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 2 tours in the "data" array
+        $response->assertJsonCount(2, 'data');
+        //* Assert that the returned JSON contains a tour with the correct ID
+        $response->assertJsonFragment(['id' => $earlierTour->id]);
+        $response->assertJsonFragment(['id' => $laterTour->id]);
+
+        //* Send Get Request  filter by dateTo add day
+        $response = $this->get($endpoint . '?dateTo=' . now()->addDay());
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 1 tour in the "data" array
+        $response->assertJsonCount(1, 'data');
+        //* Assert that the returned JSON contains a tour with the correct ID
+        $response->assertJsonFragment(['id' => $earlierTour->id]);
+        $response->assertJsonMissing(['id' => $laterTour->id]);
+
+        //* Send Get Request  filter by dateTo subDay
+        $response = $this->get($endpoint . '?dateTo=' . now()->subDay());
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 0 tour in the "data" array
+        $response->assertJsonCount(0, 'data');
+
+        //* Send Get Request  filter by dateFrom addDay and dateTo add 5 days
+        $response = $this->get($endpoint . '?dateFrom=' . now()->addDay() . '&dateTo=' . now()->addDays(5));
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+        //* Assert that the response contains exactly 1 tour in the "data" array
+        $response->assertJsonCount(1, 'data');
+        //* Assert that the returned JSON contains a tour with the correct ID
+        $response->assertJsonFragment(['id' => $laterTour->id]);
+        $response->assertJsonMissing(['id' => $earlierTour->id]);
+    
+    }
 }
