@@ -13,6 +13,7 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('admin')->middleware(['auth:sanctum' , 'role:admin'])->group(function (){
         Route::post('/travels', [App\Http\Controllers\Api\V1\Admin\TravelController::class ,'store']);
+        Route::post('/travels/{travel}/tours', [App\Http\Controllers\Api\V1\Admin\TourController::class, 'store']);
     });
 
     Route::post('/login',LoginController::class);
