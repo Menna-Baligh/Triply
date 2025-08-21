@@ -79,4 +79,33 @@ class TourListTest extends TestCase
         //* Assert that the "last_page" value in pagination meta is 2 (16 tours / 15 per page = 2 pages)
         $response->assertJsonPath('meta.last_page', 2);
     }
+    public function test_tours_list_sorts_by_starting_date_correctly(){
+        //* Create a travel record to associate tours with
+        $travel = Travel::factory()->create();
+
+        //* Create a tour that starts later than the current date
+        $laterTour = Tour::factory()->create([
+            'travel_id' => $travel->id,
+            'starting_date' => now()->addDays(2),
+            'ending_date' => now()->addDays(3),
+        ]);
+        //* Create a tour that starts earlier
+        $earlierTour = Tour::factory()->create([
+            'travel_id' => $travel->id,
+            'starting_date' => now(),
+            'ending_date' => now()->addDay()
+        ]);
+
+        //* Send GET request to fetch tours list for the travel
+        $response = $this->get('/api/v1/travels/' . $travel->slug . '/tours');
+
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+
+        //* Assert that the first tour returned is the one that started earlier
+        $response->assertJsonPath('data.0.id', $earlierTour->id);
+
+        //* Assert that the second tour returned is the one that started later
+        $response->assertJsonPath('data.1.id', $laterTour->id);
+    }
 }
