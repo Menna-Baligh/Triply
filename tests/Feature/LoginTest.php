@@ -28,4 +28,17 @@ class LoginTest extends TestCase
         $reponse->assertStatus(200)
                 ->assertJsonStructure(['access_token']);
     }
+    public function test_login_returns_error_with_invalid_credentials(): void
+    {
+        //* Send a POST request to the login endpoint with invalid credentials
+        $response = $this->postJson('/api/v1/login', [
+            'email' => 'invalid_email@.com',
+            'password' => 'invalid_password',
+        ]);
+
+        //* Assert that the response status is 422 and contains an error message
+        $response->assertStatus(422);
+    }
+
+
 }
