@@ -108,4 +108,45 @@ class TourListTest extends TestCase
         //* Assert that the second tour returned is the one that started later
         $response->assertJsonPath('data.1.id', $laterTour->id);
     }
+    public function test_tours_list_sorts_by_price_correctly(){
+        //* Create a travel record to associate tours with
+        $travel = Travel::factory()->create();
+
+        //* Create a tour with a higher price
+        $expensiveTour = Tour::factory()->create([
+            'travel_id' => $travel->id,
+            'price' => 200.00,
+        ]);
+
+        //* Create a tour with a lower price
+        $cheapLaterTour = Tour::factory()->create([
+            'travel_id' => $travel->id,
+            'price' => 100.00,
+            'starting_date' => now()->addDays(2),
+            'ending_date' => now()->addDays(3),
+        ]);
+
+        //* Create a tour with the same price but earlier starting date
+        $cheapEarlierTour = Tour::factory()->create([
+            'travel_id' => $travel->id,
+            'price' => 100.00,
+            'starting_date' => now(),
+            'ending_date' => now()->addDay()
+        ]);
+
+        //* Send GET request to fetch tours list for the travel
+        $response = $this->get('/api/v1/travels/' . $travel->slug . '/tours?sortBy=price&sortOrder=asc');
+
+        //* Assert that the response returns status code 200 (success)
+        $response->assertStatus(200);
+
+        //* Assert that the first tour returned is the one with the lower price and earlier starting date
+        $response->assertJsonPath('data.0.id', $cheapEarlierTour->id);
+
+        //* Assert that the second tour returned is the one with the lower price but later starting date
+        $response->assertJsonPath('data.1.id', $cheapLaterTour->id);
+
+        //* Assert that the third tour returned is the one with the higher price
+        $response->assertJsonPath('data.2.id', $expensiveTour->id);
+    }
 }
