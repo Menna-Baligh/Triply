@@ -316,6 +316,23 @@ class TourListTest extends TestCase
         //* Assert that the returned JSON contains a tour with the correct ID
         $response->assertJsonFragment(['id' => $laterTour->id]);
         $response->assertJsonMissing(['id' => $earlierTour->id]);
-    
+
+    }
+    public function test_tour_list_returns_validation_errors(){
+        //* create a travel record
+        $travel = Travel::factory()->create();
+
+        //* Endpoint for fetching tours by travel slug
+        $endpoint = '/api/v1/travels/' . $travel->slug . '/tours';
+
+        //* Send Get Request with invalid date
+        $response = $this->getJson($endpoint . '?dateFrom=abcde');
+        //* Assert that the response returns status code 422 (Unprocessable Entity)
+        $response->assertStatus(422);
+
+        //* Send Get Request with invalid 'PriceFrom'
+        $response = $this->getJson($endpoint . '?priceFrom=abcde');
+        //* Assert that the response returns status code 422 (Unprocessable Entity)
+        $response->assertStatus(422);
     }
 }
