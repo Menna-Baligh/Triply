@@ -8,5 +8,8 @@ use App\Http\Controllers\Api\V1\TravelContoller;
 Route::prefix('v1')->group(function () {
     Route::get('/travels', [TravelContoller::class, 'index']);
     Route::get('/travels/{travel:slug}/tours',[TourController::class , 'index']);
+    Route::prefix('admin')->group(function (){
+        Route::post('/travels', [App\Http\Controllers\Api\V1\Admin\TravelController::class ,'store']);
+    });
 });
 
