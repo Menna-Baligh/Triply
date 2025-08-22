@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 
 class CreateUserCommand extends Command
@@ -41,9 +40,10 @@ class CreateUserCommand extends Command
             1
         );
         $role = Role::where('name', $roleName)->first();
-        if(!$role){
+        if (! $role) {
             $this->error('Role not found.');
-            return -1 ;
+
+            return -1;
         }
 
         $validator = Validator::make($user, [
@@ -51,11 +51,12 @@ class CreateUserCommand extends Command
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:5',
         ]);
-        if($validator->fails()){
+        if ($validator->fails()) {
             foreach ($validator->errors()->all() as $error) {
                 $this->error($error);
             }
-            return -1 ;
+
+            return -1;
         }
 
         DB::transaction(function () use ($user, $role) {

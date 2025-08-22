@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ToursListRequest extends FormRequest
 {
@@ -23,14 +23,15 @@ class ToursListRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'priceFrom' => 'numeric' ,
+            'priceFrom' => 'numeric',
             'priceTo' => 'numeric',
             'dateFrom' => 'date',
             'dateTo' => 'date',
-            'sortBy'=> Rule::in(['price']) ,
+            'sortBy' => Rule::in(['price']),
             'sortOrder' => Rule::in(['asc', 'desc']),
         ];
     }
+
     public function messages(): array
     {
         return [
